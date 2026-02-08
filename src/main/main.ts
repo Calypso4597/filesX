@@ -216,6 +216,8 @@ async function runNextJob() {
   currentJobId = job.id;
 
   let buffer = "";
+  let stderrBuffer = "";
+  const stderrLines: string[] = [];
   proc.stdout.on("data", (chunk) => {
     buffer += chunk.toString();
     const lines = buffer.split(/\r?\n/);
@@ -238,8 +240,16 @@ async function runNextJob() {
     }
   });
 
-  proc.stderr.on("data", () => {
-    // Keep stderr quiet unless we hit an error.
+  proc.stderr.on("data", (chunk) => {
+    stderrBuffer += chunk.toString();
+    const lines = stderrBuffer.split(/\r?\n/);
+    stderrBuffer = lines.pop() || "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      stderrLines.push(trimmed);
+      if (stderrLines.length > 8) stderrLines.shift();
+    }
   });
 
   proc.on("close", (code) => {
@@ -254,7 +264,8 @@ async function runNextJob() {
       job.status = "error";
       job.progress = null;
       job.message = "Failed";
-      job.error = `FFmpeg exited with code ${code ?? "unknown"}`;
+      const detail = stderrLines.length ? ` | ${stderrLines[stderrLines.length - 1]}` : "";
+      job.error = `FFmpeg exited with code ${code ?? "unknown"}${detail}`;
     }
     emitUpdate(job.id);
     currentProcess = null;

@@ -84,6 +84,24 @@ function resolveFfmpeg() {
   };
 }
 
+function listEncoders() {
+  const { ok, ffmpeg } = resolveFfmpeg();
+  if (!ok) return { ok: false, encoders: [] as string[] };
+  try {
+    const result = spawnSync(ffmpeg, ["-encoders"], { encoding: "utf-8" });
+    if (result.status !== 0) return { ok: false, encoders: [] as string[] };
+    const encoders: string[] = [];
+    const lines = (result.stdout || "").split(/\r?\n/);
+    for (const line of lines) {
+      const match = line.match(/^\s*[A-Z\.]{6}\s+([0-9A-Za-z_]+)\s/);
+      if (match?.[1]) encoders.push(match[1]);
+    }
+    return { ok: true, encoders };
+  } catch {
+    return { ok: false, encoders: [] as string[] };
+  }
+}
+
 type JobStatus = "queued" | "running" | "done" | "error" | "canceled";
 
 interface JobRequest {
@@ -364,6 +382,7 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("ffmpeg:check", () => resolveFfmpeg());
+ipcMain.handle("ffmpeg:encoders", () => listEncoders());
 
 ipcMain.handle("ffmpeg:setPaths", (_event, paths: { ffmpegPath?: string; ffprobePath?: string }) => {
   if (paths.ffmpegPath) {

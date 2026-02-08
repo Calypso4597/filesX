@@ -4,6 +4,7 @@ declare global {
   interface Window {
     api: {
       checkFfmpeg: () => Promise<any>;
+      getEncoders: () => Promise<{ ok: boolean; encoders: string[] }>;
       setFfmpegPaths: (paths: { ffmpegPath?: string; ffprobePath?: string }) => Promise<any>;
       selectFiles: () => Promise<string[]>;
       selectOutputDir: () => Promise<string | null>;

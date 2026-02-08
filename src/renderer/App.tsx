@@ -6,24 +6,28 @@ const PRESETS = [
     id: "mp4-h264-vtb",
     label: "MP4 (H.264 VideoToolbox + AAC)",
     ext: "mp4",
+    requiredEncoders: ["h264_videotoolbox", "aac"],
     args: ["-c:v", "h264_videotoolbox", "-b:v", "5M", "-c:a", "aac", "-b:a", "160k"]
   },
   {
     id: "mp4-hevc-vtb",
     label: "MP4 (HEVC VideoToolbox + AAC)",
     ext: "mp4",
+    requiredEncoders: ["hevc_videotoolbox", "aac"],
     args: ["-c:v", "hevc_videotoolbox", "-b:v", "4M", "-tag:v", "hvc1", "-c:a", "aac", "-b:a", "160k"]
   },
   {
     id: "m4a-aac",
     label: "M4A (AAC 256 kbps)",
     ext: "m4a",
+    requiredEncoders: ["aac"],
     args: ["-vn", "-c:a", "aac", "-b:a", "256k"]
   },
   {
     id: "wav",
     label: "WAV (PCM 48kHz)",
     ext: "wav",
+    requiredEncoders: ["pcm_s16le"],
     args: ["-vn", "-c:a", "pcm_s16le", "-ar", "48000"]
   }
 ];
@@ -117,12 +121,30 @@ export default function App() {
   const [overwrite, setOverwrite] = useState(false);
   const [showCommand, setShowCommand] = useState(false);
   const [files, setFiles] = useState<FileItem[]>([]);
+  const [encoders, setEncoders] = useState<Set<string>>(new Set());
 
-  const preset = useMemo(() => PRESETS.find((p) => p.id === presetId) ?? PRESETS[0], [presetId]);
+  const availablePresets = useMemo(() => {
+    if (!encoders.size) return PRESETS;
+    return PRESETS.filter((preset) => preset.requiredEncoders.every((enc) => encoders.has(enc)));
+  }, [encoders]);
+
+  const preset = useMemo(
+    () => availablePresets.find((p) => p.id === presetId) ?? availablePresets[0],
+    [availablePresets, presetId]
+  );
 
   useEffect(() => {
     window.api.checkFfmpeg().then(setFfmpegInfo);
   }, []);
+
+  useEffect(() => {
+    if (!ffmpegInfo?.ok) return;
+    window.api.getEncoders().then((result) => {
+      if (result?.ok) {
+        setEncoders(new Set(result.encoders));
+      }
+    });
+  }, [ffmpegInfo?.ok, ffmpegInfo?.ffmpeg]);
 
   useEffect(() => {
     const unsubscribe = window.api.onJobUpdate((update: JobUpdate) => {
@@ -146,6 +168,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!preset) return;
     setFiles((prev) =>
       prev.map((item) =>
         item.status === "idle"
@@ -158,6 +181,12 @@ export default function App() {
     );
   }, [outputDir, nameTemplate, preset.ext]);
 
+  useEffect(() => {
+    if (!preset && availablePresets.length) {
+      setPresetId(availablePresets[0].id);
+    }
+  }, [availablePresets, preset]);
+
   const queueRunning = files.some((file) => file.status === "queued" || file.status === "running");
 
   const addFiles = async () => {
@@ -165,15 +194,15 @@ export default function App() {
     if (!paths.length) return;
     setFiles((prev) => {
       const existing = new Set(prev.map((p) => p.inputPath));
-      const additions = paths
-        .filter((p) => !existing.has(p))
-        .map((path) => ({
-          id: crypto.randomUUID(),
-          inputPath: path,
-          outputPath: buildOutputPath(path, outputDir, nameTemplate, preset.ext),
-          status: "idle" as const,
-          progress: null
-        }));
+    const additions = paths
+      .filter((p) => !existing.has(p))
+      .map((path) => ({
+        id: crypto.randomUUID(),
+        inputPath: path,
+        outputPath: buildOutputPath(path, outputDir, nameTemplate, preset?.ext ?? "mp4"),
+        status: "idle" as const,
+        progress: null
+      }));
       return [...prev, ...additions];
     });
   };
@@ -207,7 +236,7 @@ export default function App() {
       id: file.id,
       inputPath: file.inputPath,
       outputPath: file.outputPath,
-      args: [...preset.args, ...extra],
+      args: [...(preset?.args ?? []), ...extra],
       overwrite
     }));
     setFiles((prev) =>
@@ -284,13 +313,16 @@ export default function App() {
           <h2>Core Settings</h2>
           <label className="field">
             <span>Preset</span>
-            <select value={presetId} onChange={(event) => setPresetId(event.target.value)}>
-              {PRESETS.map((item) => (
+            <select value={preset?.id ?? presetId} onChange={(event) => setPresetId(event.target.value)}>
+              {availablePresets.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.label}
                 </option>
               ))}
             </select>
+            {!availablePresets.length ? (
+              <small>No compatible presets found for this FFmpeg build.</small>
+            ) : null}
           </label>
 
           <label className="field">

@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("api", {
   checkFfmpeg: () => ipcRenderer.invoke("ffmpeg:check"),
+  getEncoders: () => ipcRenderer.invoke("ffmpeg:encoders"),
   setFfmpegPaths: (paths: { ffmpegPath?: string; ffprobePath?: string }) =>
     ipcRenderer.invoke("ffmpeg:setPaths", paths),
   selectFiles: () => ipcRenderer.invoke("dialog:openFiles"),

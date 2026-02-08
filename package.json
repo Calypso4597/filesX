@@ -1,0 +1,27 @@
+{
+  "name": "filesx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FilesX - FFmpeg desktop batch converter",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"tsc -w -p tsconfig.main.json\" \"wait-on tcp:5173 dist/main/main.js && electron .\"",
+    "build": "tsc -p tsconfig.main.json && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.2",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "wait-on": "^7.2.0"
+  }
+}

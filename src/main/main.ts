@@ -264,7 +264,8 @@ async function runNextJob() {
       job.status = "error";
       job.progress = null;
       job.message = "Failed";
-      const detail = stderrLines.length ? ` | ${stderrLines[stderrLines.length - 1]}` : "";
+      const detailLines = stderrLines.slice(-3);
+      const detail = detailLines.length ? ` | ${detailLines.join(" | ")}` : "";
       job.error = `FFmpeg exited with code ${code ?? "unknown"}${detail}`;
     }
     emitUpdate(job.id);

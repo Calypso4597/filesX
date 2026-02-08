@@ -3,28 +3,22 @@ import type { FileItem, JobUpdate } from "./types";
 
 const PRESETS = [
   {
-    id: "mp4-h264",
-    label: "MP4 (H.264 + AAC)",
+    id: "mp4-h264-vtb",
+    label: "MP4 (H.264 VideoToolbox + AAC)",
     ext: "mp4",
-    args: ["-c:v", "libx264", "-preset", "medium", "-crf", "23", "-c:a", "aac", "-b:a", "160k"]
+    args: ["-c:v", "h264_videotoolbox", "-b:v", "5M", "-c:a", "aac", "-b:a", "160k"]
   },
   {
-    id: "mp4-h265",
-    label: "MP4 (H.265 + AAC)",
+    id: "mp4-hevc-vtb",
+    label: "MP4 (HEVC VideoToolbox + AAC)",
     ext: "mp4",
-    args: ["-c:v", "libx265", "-preset", "medium", "-crf", "26", "-c:a", "aac", "-b:a", "160k"]
+    args: ["-c:v", "hevc_videotoolbox", "-b:v", "4M", "-tag:v", "hvc1", "-c:a", "aac", "-b:a", "160k"]
   },
   {
-    id: "webm-vp9",
-    label: "WebM (VP9 + Opus)",
-    ext: "webm",
-    args: ["-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0", "-c:a", "libopus", "-b:a", "128k"]
-  },
-  {
-    id: "mp3-320",
-    label: "MP3 (320 kbps)",
-    ext: "mp3",
-    args: ["-vn", "-c:a", "libmp3lame", "-b:a", "320k"]
+    id: "m4a-aac",
+    label: "M4A (AAC 256 kbps)",
+    ext: "m4a",
+    args: ["-vn", "-c:a", "aac", "-b:a", "256k"]
   },
   {
     id: "wav",

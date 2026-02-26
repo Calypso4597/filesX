@@ -35,7 +35,7 @@ const config: Config = {
         glow: "0 16px 40px -20px hsl(214 95% 55% / 0.35)"
       },
       fontFamily: {
-        sans: ["'Plus Jakarta Sans'", "'SF Pro Text'", "'Segoe UI'", "sans-serif"]
+        sans: ["'Inter'", "'SF Pro Text'", "'Segoe UI'", "sans-serif"]
       }
     }
   },

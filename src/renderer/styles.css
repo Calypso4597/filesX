@@ -1,6 +1,6 @@
-@import "@fontsource/plus-jakarta-sans/500.css";
-@import "@fontsource/plus-jakarta-sans/600.css";
-@import "@fontsource/plus-jakarta-sans/700.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
 
 @tailwind base;
 @tailwind components;
@@ -40,7 +40,7 @@
       radial-gradient(circle at 12% -10%, hsl(197 90% 85% / 0.45), transparent 36%),
       radial-gradient(circle at 85% -20%, hsl(233 92% 84% / 0.33), transparent 44%),
       linear-gradient(180deg, hsl(210 33% 99%) 0%, hsl(210 32% 97%) 100%);
-    font-family: "Plus Jakarta Sans", "SF Pro Text", "Segoe UI", sans-serif;
+    font-family: "Inter", "SF Pro Text", "Segoe UI", sans-serif;
   }
 }
 

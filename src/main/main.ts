@@ -77,13 +77,19 @@ function resolveBinary(nameOrPath: string) {
 }
 
 function resolveFfmpeg() {
-  const ffmpegCandidate = overridePaths.ffmpeg || DEFAULT_FFMPEG;
-  const ffprobeCandidate = overridePaths.ffprobe || DEFAULT_FFPROBE;
-  const ffmpegResolved = resolveBinary(ffmpegCandidate);
-  const ffprobeResolved = resolveBinary(ffprobeCandidate);
+  const ffmpegOverrideResolved = overridePaths.ffmpeg ? resolveBinary(overridePaths.ffmpeg) : null;
+  const ffmpegDefaultResolved = resolveBinary(DEFAULT_FFMPEG);
+  const ffmpegResolved = ffmpegOverrideResolved || ffmpegDefaultResolved;
 
-  const ffmpeg = ffmpegResolved || ffmpegCandidate;
-  const ffprobe = ffprobeResolved || ffprobeCandidate;
+  const ffprobeOverrideResolved = overridePaths.ffprobe ? resolveBinary(overridePaths.ffprobe) : null;
+  const ffprobeFromFfmpeg = ffmpegResolved
+    ? resolveBinary(path.join(path.dirname(ffmpegResolved), "ffprobe"))
+    : null;
+  const ffprobeDefaultResolved = resolveBinary(DEFAULT_FFPROBE);
+  const ffprobeResolved = ffprobeOverrideResolved || ffprobeFromFfmpeg || ffprobeDefaultResolved;
+
+  const ffmpeg = ffmpegResolved || overridePaths.ffmpeg || DEFAULT_FFMPEG;
+  const ffprobe = ffprobeResolved || overridePaths.ffprobe || DEFAULT_FFPROBE;
 
   const ffmpegCheck = ffmpegResolved ? checkBinary(ffmpegResolved) : { ok: false, version: "" };
   const ffprobeCheck = ffprobeResolved ? checkBinary(ffprobeResolved) : { ok: false, version: "" };
@@ -409,8 +415,8 @@ ipcMain.handle("ffmpeg:setPaths", (_event, paths: { ffmpegPath?: string; ffprobe
     overridePaths.ffprobe = paths.ffprobePath;
   }
 
-  if (overridePaths.ffmpeg && !paths.ffprobePath) {
-    const candidate = path.join(path.dirname(overridePaths.ffmpeg), "ffprobe");
+  if (paths.ffmpegPath && !paths.ffprobePath) {
+    const candidate = path.join(path.dirname(paths.ffmpegPath), "ffprobe");
     if (isExecutable(candidate)) {
       overridePaths.ffprobe = candidate;
     }

@@ -43,9 +43,26 @@ function checkBinary(cmd: string) {
   }
 }
 
+function getPortableBinaryCandidates(binaryName: string) {
+  const candidates = new Set<string>();
+  const appPath = app.getAppPath();
+
+  candidates.add(path.join(appPath, "bin", binaryName));
+  candidates.add(path.join(process.cwd(), "bin", binaryName));
+  candidates.add(path.join(process.resourcesPath, "bin", binaryName));
+  candidates.add(path.join(process.resourcesPath, "app.asar.unpacked", "bin", binaryName));
+
+  return Array.from(candidates);
+}
+
 function resolveBinary(nameOrPath: string) {
   if (path.isAbsolute(nameOrPath)) {
     return isExecutable(nameOrPath) ? nameOrPath : null;
+  }
+
+  const portableCandidates = getPortableBinaryCandidates(nameOrPath);
+  for (const candidate of portableCandidates) {
+    if (isExecutable(candidate)) return candidate;
   }
 
   const available = checkBinary(nameOrPath).ok;
